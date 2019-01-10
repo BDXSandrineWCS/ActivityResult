@@ -1,5 +1,9 @@
 package com.wcs.activityresult;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.support.design.widget.TabItem;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -11,15 +15,20 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import android.widget.Button;
 import android.widget.TextView;
 
 public class TabActivity extends AppCompatActivity {
+
+    private static final String TAB_EXTRA_KEY = "tab_key";
+    private static int currentPosition;
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -72,7 +81,7 @@ public class TabActivity extends AppCompatActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
+        currentPosition= id;
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
@@ -109,11 +118,27 @@ public class TabActivity extends AppCompatActivity {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
+            final int tabId=getArguments().getInt(ARG_SECTION_NUMBER);
             View rootView = inflater.inflate(R.layout.fragment_tab, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+            TextView textView= (TextView) rootView.findViewById(R.id.textView_tab_name) ;
+            textView.setText(getString(R.string.tab_selected_text, tabId));
+            Button button = (Button)rootView.findViewById(R.id.button_return_to_main_activity);
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    returnToMain(tabId);
+                }
+            });
             return rootView;
         }
+
+        private void returnToMain(int tabId){
+            Intent intent = new Intent();
+            intent.putExtra(TAB_EXTRA_KEY,tabId);
+            getActivity().setResult(Activity.RESULT_OK, intent);
+            getActivity().finish();
+        }
+
     }
 
     /**
@@ -138,5 +163,29 @@ public class TabActivity extends AppCompatActivity {
             // Show 3 total pages.
             return 3;
         }
+
+        @Override
+        public long getItemId(int position) {
+            return super.getItemId(position);
+        }
+
+    }
+
+    public static String getTabExtraKey() {
+        return TAB_EXTRA_KEY;
+    }
+
+    @Override
+    protected void onPause() {
+        currentPosition = mViewPager.getCurrentItem();
+
+
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mViewPager.setCurrentItem(currentPosition);
     }
 }
